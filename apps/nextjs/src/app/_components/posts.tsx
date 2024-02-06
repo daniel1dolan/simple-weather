@@ -1,94 +1,82 @@
 "use client";
 
-import { use } from "react";
+import { useState } from "react";
+import Image from "next/image";
 
-import type { RouterOutputs } from "@acme/api";
-import { cn } from "@acme/ui";
-import { Button } from "@acme/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-  useForm,
-} from "@acme/ui/form";
-import { Input } from "@acme/ui/input";
-import { toast } from "@acme/ui/toast";
-import { CreatePostSchema } from "@acme/validators";
+import type { RouterOutputs } from "@simple-weather/api";
 
 import { api } from "~/trpc/react";
 
 export function CreatePostForm() {
-  const form = useForm({
-    schema: CreatePostSchema,
-    defaultValues: {
-      content: "",
-      title: "",
-    },
-  });
-
   const utils = api.useUtils();
-  const createPost = api.post.create.useMutation({
-    onSuccess: async () => {
-      form.reset();
-      await utils.post.invalidate();
-    },
-    onError: (err) => {
-      toast.error(
-        err?.data?.code === "UNAUTHORIZED"
-          ? "You must be logged in to post"
-          : "Failed to create post",
-      );
+
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  const { mutateAsync: createPost, error } = api.post.create.useMutation({
+    async onSuccess() {
+      setTitle("");
+      setContent("");
+      await utils.post.all.invalidate();
     },
   });
 
   return (
-    <Form {...form}>
-      <form
-        className="flex w-full max-w-2xl flex-col gap-4"
-        onSubmit={form.handleSubmit(async (data) => {
-          createPost.mutate(data);
-        })}
+    <form
+      className="flex w-full max-w-2xl flex-col"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        try {
+          await createPost({
+            title,
+            content,
+          });
+          setTitle("");
+          setContent("");
+          await utils.post.all.invalidate();
+        } catch {
+          // noop
+        }
+      }}
+    >
+      <input
+        className="mb-2 rounded bg-white/10 p-2 text-white"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+      />
+      {error?.data?.zodError?.fieldErrors.title && (
+        <span className="mb-2 text-red-500">
+          {error.data.zodError.fieldErrors.title}
+        </span>
+      )}
+      <input
+        className="mb-2 rounded bg-white/10 p-2 text-white"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Content"
+      />
+      {error?.data?.zodError?.fieldErrors.content && (
+        <span className="mb-2 text-red-500">
+          {error.data.zodError.fieldErrors.content}
+        </span>
+      )}
+      {}
+      <button
+        type="submit"
+        className="rounded bg-emerald-400 p-2 font-bold text-zinc-900"
       >
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input {...field} placeholder="Title" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input {...field} placeholder="Content" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button>Create</Button>
-      </form>
-    </Form>
+        Create
+      </button>
+      {error?.data?.code === "UNAUTHORIZED" && (
+        <span className="mt-2 text-red-500">You must be logged in to post</span>
+      )}
+    </form>
   );
 }
 
-export function PostList(props: {
-  posts: Promise<RouterOutputs["post"]["all"]>;
-}) {
-  // TODO: Make `useSuspenseQuery` work without having to pass a promise from RSC
-  const initialData = use(props.posts);
-  const { data: posts } = api.post.all.useQuery(undefined, {
-    initialData,
-  });
+export function PostList() {
+  const [posts] = api.post.all.useSuspenseQuery();
 
   if (posts.length === 0) {
     return (
@@ -117,33 +105,32 @@ export function PostCard(props: {
   post: RouterOutputs["post"]["all"][number];
 }) {
   const utils = api.useUtils();
-  const deletePost = api.post.delete.useMutation({
-    onSuccess: async () => {
-      await utils.post.invalidate();
-    },
-    onError: (err) => {
-      toast.error(
-        err?.data?.code === "UNAUTHORIZED"
-          ? "You must be logged in to delete a post"
-          : "Failed to delete post",
-      );
-    },
-  });
+  const deletePost = api.post.delete.useMutation();
+  const { post } = props;
 
   return (
-    <div className="flex flex-row rounded-lg bg-muted p-4">
+    <div className="flex flex-row rounded-lg bg-white/10 p-4 transition-all hover:scale-[101%]">
+      <Image
+        className="mr-2 self-center rounded"
+        src={post.author?.image ?? ""}
+        alt={`${post.author?.name}'s avatar`}
+        width={64}
+        height={64}
+      />
       <div className="flex-grow">
-        <h2 className="text-2xl font-bold text-primary">{props.post.title}</h2>
-        <p className="mt-2 text-sm">{props.post.content}</p>
+        <h2 className="text-2xl font-bold text-emerald-400">{post.title}</h2>
+        <p className="mt-2 text-sm">{post.content}</p>
       </div>
       <div>
-        <Button
-          variant="ghost"
-          className="cursor-pointer text-sm font-bold uppercase text-primary hover:bg-transparent hover:text-white"
-          onClick={() => deletePost.mutate(props.post.id)}
+        <button
+          className="cursor-pointer text-sm font-bold uppercase text-emerald-400"
+          onClick={async () => {
+            await deletePost.mutateAsync(props.post.id);
+            await utils.post.all.invalidate();
+          }}
         >
           Delete
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -151,22 +138,26 @@ export function PostCard(props: {
 
 export function PostCardSkeleton(props: { pulse?: boolean }) {
   const { pulse = true } = props;
+
   return (
-    <div className="flex flex-row rounded-lg bg-muted p-4">
+    <div className="flex flex-row rounded-lg bg-white/10 p-4 transition-all hover:scale-[101%]">
+      <div
+        className={`mr-2 h-16 w-16 self-center rounded ${
+          pulse && "animate-pulse"
+        }`}
+      />
       <div className="flex-grow">
         <h2
-          className={cn(
-            "w-1/4 rounded bg-primary text-2xl font-bold",
-            pulse && "animate-pulse",
-          )}
+          className={`w-1/4 rounded bg-emerald-400 text-2xl font-bold ${
+            pulse && "animate-pulse"
+          }`}
         >
           &nbsp;
         </h2>
         <p
-          className={cn(
-            "mt-2 w-1/3 rounded bg-current text-sm",
-            pulse && "animate-pulse",
-          )}
+          className={`mt-2 w-1/3 rounded bg-current text-sm ${
+            pulse && "animate-pulse"
+          }`}
         >
           &nbsp;
         </p>

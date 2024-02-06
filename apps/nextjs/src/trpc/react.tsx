@@ -6,11 +6,14 @@ import { loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import SuperJSON from "superjson";
 
-import type { AppRouter } from "@acme/api";
+import type { AppRouter } from "@simple-weather/api";
 
 export const api = createTRPCReact<AppRouter>();
 
-export function TRPCReactProvider(props: { children: React.ReactNode }) {
+export function TRPCReactProvider(props: {
+  children: React.ReactNode;
+  headersPromise: Promise<Headers>;
+}) {
   const [queryClient] = useState(() => new QueryClient());
 
   const [trpcClient] = useState(() =>
@@ -25,9 +28,9 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
         unstable_httpBatchStreamLink({
           url: getBaseUrl() + "/api/trpc",
           async headers() {
-            const headers = new Headers();
+            const headers = new Map(await props.headersPromise);
             headers.set("x-trpc-source", "nextjs-react");
-            return headers;
+            return Object.fromEntries(headers);
           },
         }),
       ],

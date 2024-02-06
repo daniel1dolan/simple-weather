@@ -1,8 +1,8 @@
 {
-  "extends": "@acme/tsconfig/base.json",
+  "extends": "@simple-weather/tsconfig/base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
   },
-  "include": ["src"],
+  "include": ["."],
   "exclude": ["node_modules"]
 }
