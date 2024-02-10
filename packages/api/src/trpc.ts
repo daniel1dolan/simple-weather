@@ -28,6 +28,7 @@ import { db } from "@simple-weather/db";
 export const createTRPCContext = async (opts: {
   headers: Headers;
   supabase: SupabaseClient;
+  req: { geo?: { latitude?: string; longitude?: string } };
 }) => {
   const supabase = opts.supabase;
 
@@ -45,6 +46,7 @@ export const createTRPCContext = async (opts: {
   return {
     user: user.data.user,
     db,
+    req: opts.req,
   };
 };
 

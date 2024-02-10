@@ -6,7 +6,10 @@ import { Link, Stack } from "expo-router";
 import { api } from "~/utils/api";
 
 export default function Index() {
-  const weatherQuery = api.weather.get.useQuery();
+  const weatherQuery = api.weather.getLocation.useQuery({
+    lat: "30.2672",
+    lng: "-97.7431",
+  });
 
   return (
     <>
@@ -20,13 +23,26 @@ export default function Index() {
 
           {/* Main Weather Display */}
           <View className="items-center p-4">
-            <Text className="text-6xl">23°F</Text>
-            <Text className="text-xl text-gray-700">Sunny</Text>
+            <Text className="text-6xl">
+              {weatherQuery.data?.currentWeather.temperature.toFixed(0)}
+              {weatherQuery.data?.temperatureUnit}
+            </Text>
+            <Text className="text-xl text-gray-700">
+              {weatherQuery.data?.currentWeather?.description}
+            </Text>
 
             {/* Additional Details */}
             <View className="w-full flex-row justify-around">
-              <Text className="text-gray-600">Rain: 40%</Text>
-              <Text className="text-gray-600">Wind: 10 km/h</Text>
+              <Text className="text-gray-600">
+                Rain: {weatherQuery.data?.currentWeather.rainChance ?? 0}%
+              </Text>
+              <Text className="text-gray-600">
+                Wind:{" "}
+                {weatherQuery.data?.currentWeather.windSpeedMph.toFixed(0)} mph{" "}
+                {weatherQuery.data?.currentWeather.windDirection
+                  .split("-")
+                  .map((el) => el[0])}
+              </Text>
             </View>
           </View>
 
@@ -101,12 +117,6 @@ export default function Index() {
               {/* Repeat for other times */}
             </View>
           </ScrollView>
-
-          {/* <View className="py-2">
-          <Text className="font-semibold italic text-black">
-            This is the home.
-          </Text>
-        </View> */}
         </View>
       </View>
     </>

@@ -28,12 +28,19 @@ export function OPTIONS() {
 
 const handler = async (req: NextRequest) => {
   const supabase = createRouteHandlerClient({ cookies });
+  // console.log("lon", req.geo?.longitude);
+  // console.log("lat", req.geo?.latitude);
 
   const response = await fetchRequestHandler({
     endpoint: "/api/trpc",
     router: appRouter,
     req,
-    createContext: () => createTRPCContext({ headers: req.headers, supabase }),
+    createContext: () =>
+      createTRPCContext({
+        headers: req.headers,
+        supabase,
+        req: { geo: req.geo },
+      }),
     onError({ error, path }) {
       console.error(`>>> tRPC Error on '${path}'`, error);
     },

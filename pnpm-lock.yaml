@@ -266,6 +266,9 @@ importers:
       '@simple-weather/db':
         specifier: workspace:^0.1.0
         version: link:../db
+      '@simple-weather/weather':
+        specifier: workspace:^0.1.0
+        version: link:../weather
       '@supabase/supabase-js':
         specifier: ^2.39.0
         version: 2.39.0
@@ -449,6 +452,31 @@ importers:
         version: 3.22.4
 
   packages/validators:
+    dependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
+    devDependencies:
+      '@simple-weather/eslint-config':
+        specifier: workspace:^0.2.0
+        version: link:../../tooling/eslint
+      '@simple-weather/prettier-config':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/prettier
+      '@simple-weather/tsconfig':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/typescript
+      eslint:
+        specifier: ^8.56.0
+        version: 8.56.0
+      prettier:
+        specifier: ^3.1.1
+        version: 3.1.1
+      typescript:
+        specifier: ^5.3.3
+        version: 5.3.3
+
+  packages/weather:
     dependencies:
       zod:
         specifier: ^3.22.4
