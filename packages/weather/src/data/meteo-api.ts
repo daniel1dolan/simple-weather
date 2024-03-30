@@ -21,11 +21,19 @@ export const meteoWeatherReturnSchema = z.object({
     time: z.string(),
     interval: z.string(),
     weather_code: z.string(),
+    temperature_2m: z.enum(["°F", "°C"]),
+    precipitation_probability: z.string(),
+    wind_speed_10m: z.string(),
+    wind_direction_10m: z.string(),
   }),
   current: z.object({
     time: z.string(),
     interval: z.number(),
     weather_code: z.number(),
+    temperature_2m: z.number(),
+    precipitation_probability: z.number(),
+    wind_speed_10m: z.number(),
+    wind_direction_10m: z.number(),
   }),
   hourly_units: z.object({
     time: z.string(),
@@ -46,22 +54,22 @@ export const meteoWeatherReturnSchema = z.object({
 export type MetoData = z.infer<typeof meteoWeatherReturnSchema>;
 
 export const mapMeteoData = (data: MetoData): WeatherDataSchema => {
-  const currentTime = data.hourly.time[0];
-  const currentTemperature = data.hourly.temperature_2m[0];
-  const rainChance = data.hourly.precipitation_probability[0];
-  const windSpeedMph = data.hourly.wind_speed_10m[0];
-  const windDirectionValue = data.hourly?.wind_direction_10m[0];
+  const currentTime = data.current.time;
+  const currentTemperature = data.current.temperature_2m;
+  const rainChance = data.current.precipitation_probability;
+  const windSpeedMph = data.current.wind_speed_10m;
+  const windDirectionValue = data.current.wind_direction_10m;
   const windDirection = windDirectionValue
     ? getDirectionFromAngle(windDirectionValue)
     : undefined;
   if (
     !currentTime ||
     !currentTemperature ||
-    !rainChance ||
+    !(typeof rainChance !== "undefined") ||
     !windSpeedMph ||
     !windDirection
   ) {
-    throw new Error(`Invalid temperature data.`);
+    throw new Error(`Invalid current weather data.`);
   }
 
   const currentWeather = {
@@ -102,7 +110,8 @@ export const getMeteoData = async (lat: string, lon: string) => {
       "temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m",
     temperature_unit: "fahrenheit",
     wind_speed_unit: "mph",
-    current: "weather_code",
+    current:
+      "weather_code,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation_probability",
   };
 
   const res = await fetch(url + new URLSearchParams(params).toString(), {
@@ -111,6 +120,8 @@ export const getMeteoData = async (lat: string, lon: string) => {
     const data = (await res.json()) as unknown;
     return meteoWeatherReturnSchema.parse(data);
   });
+
+  // console.log("res", res);
 
   return mapMeteoData(res);
 };
