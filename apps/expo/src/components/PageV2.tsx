@@ -12,6 +12,7 @@ const PageV2 = (weatherData: WeatherProps) => {
       {/* Changes page title visible on the header */}
       <Stack.Screen options={{ title: "Home Page", headerShown: false }} />
       <View className="flex h-full w-full flex-col bg-gray-900 p-4">
+        {/* Top Graphic */}
         <View className="mt-12 flex h-96 items-center justify-center bg-sky-950 shadow-lg">
           <Image
             source={require("./images/sun-cutout.png")}
@@ -30,6 +31,8 @@ const PageV2 = (weatherData: WeatherProps) => {
             className="absolute bottom-8 left-28 h-24 w-36 object-fill"
           />
         </View>
+
+        {/* Weather Basics */}
         <View className="mt-4 flex flex-row items-center justify-around">
           <Text className="text-center text-2xl font-bold text-yellow-100">
             <FontAwesome5 name="map-marker-alt" size={22} /> {city}
@@ -39,6 +42,11 @@ const PageV2 = (weatherData: WeatherProps) => {
             {temperatureUnit}
           </Text>
         </View>
+
+        {/* Graph */}
+        <View></View>
+
+        {/* Wind and Rain */}
       </View>
     </>
   );

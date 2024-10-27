@@ -15,9 +15,11 @@ export const weatherRouter = createTRPCRouter({
    * If user's location cannot be determined, will fallback to Austin, TX in Testing.
    */
   getLocation: publicProcedure
-    .input(z.object({ lat: z.string().optional(), lng: z.string().optional() }))
+    .input(z.object({ lat: z.string().optional(), lng: z.string().optional() }).optional())
     .query(async ({ input, ctx }) => {
-      let { lat, lng } = input;
+      let { lat, lng } = input ?? {};
+
+      console.log(input);
 
       if ((!lat || !lng) && ctx?.req?.geo) {
         lat = ctx.req.geo.latitude;
