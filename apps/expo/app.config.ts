@@ -38,8 +38,6 @@ const defineConfig = (): ExpoConfig => ({
     typedRoutes: true,
   },
   plugins: [
-    "expo-router",
-    "./expo-plugins/with-modify-gradle.js",
     [
       "expo-location",
       {
@@ -47,6 +45,8 @@ const defineConfig = (): ExpoConfig => ({
           "Allow $(PRODUCT_NAME) to use your location.",
       },
     ],
+    "expo-router",
+    "./expo-plugins/with-modify-gradle.js",
   ],
 });
 

@@ -31,8 +31,13 @@ export default function Index() {
 
   const weatherQuery = api.weather.getLocation.useQuery({
     lat: location?.latitude?.toString() ?? undefined,
-    lng: location?.longitude?.toString() ?? undefined,
-  });
+      lng: location?.longitude?.toString() ?? undefined,
+    },
+    {
+      // TODO: add loading state before location is retrieved
+      enabled: !!location,
+    },
+  );
 
   if (errorMsg) {
     return <Text>{errorMsg}</Text>;
@@ -40,10 +45,6 @@ export default function Index() {
 
   return (
     <>
-      {/* Display location data */}
-      {/* <Text>Latitude: {location?.latitude}</Text>
-      <Text>Longitude: {location?.longitude}</Text> */}
-
       {pageToUse === "v1" && (
         <PageV1
           city={weatherQuery.data?.city}

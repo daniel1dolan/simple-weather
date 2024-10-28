@@ -19,14 +19,18 @@ export const weatherRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       let { lat, lng } = input ?? {};
 
-      console.log(input);
 
       if ((!lat || !lng) && ctx?.req?.geo) {
         lat = ctx.req.geo.latitude;
         lng = ctx.req.geo.longitude;
       }
 
-      const res = await getByLocation((lat = "30.2672"), (lng = "-97.7431"));
+      if (!lat || !lng) {
+        lat = "30.2672";
+        lng = "-97.7431";
+      }
+
+      const res = await getByLocation(lat, lng);
       return res;
     }),
 });

@@ -12,5 +12,6 @@ export const getByLocation = async (lat: string, lon: string) => {
       mappedData = await getMeteoData(lat, lon);
   }
 
+  // TODO: add actual city location data
   return { ...mappedData, city: "Austin" };
 };
